@@ -1,7 +1,6 @@
 #include "array.hpp"
 
 #include <cstring>
-#include <stdexcept>
 
 namespace lib::array {
 
@@ -95,8 +94,10 @@ void Array::PushBack(const unsigned char value) {
 }
 
 void Array::PopBack() noexcept {
-  data_[size_ - 1] = 0;
-  --size_;
+  if (size_ > 0) {
+    data_[size_ - 1] = 0;
+    --size_;
+  }
 }
 
 } // namespace lib::array

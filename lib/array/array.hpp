@@ -10,7 +10,7 @@ const std::size_t DEFAULT_CAPACITY = 10;
 class Array {
 public:
   Array();
-  Array(const std::size_t size, const unsigned char value = 0);
+  Array(const std::size_t size, const unsigned char value = '0');
   Array(const std::initializer_list<unsigned char> &init);
   Array(const std::string &init);
 

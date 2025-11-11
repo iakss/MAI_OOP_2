@@ -10,7 +10,7 @@ namespace lib::bit_string {
 class BitString {
 public:
   BitString();
-  BitString(const std::size_t count, const unsigned char value = 0);
+  BitString(const std::size_t count, const unsigned char value = '0');
   BitString(const std::initializer_list<unsigned char> &init);
   BitString(const std::string &init);
 
@@ -27,7 +27,7 @@ public:
   static BitString Not(const BitString &str) noexcept;
 
 private:
-  const array::Array digits_;
+  array::Array digits_;
 };
 
 } // namespace lib::bit_string

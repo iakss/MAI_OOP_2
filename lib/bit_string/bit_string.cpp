@@ -3,10 +3,6 @@
 #include <stdexcept>
 
 namespace {
-inline unsigned char Xor(unsigned char a, unsigned char b) noexcept {
-  return ((a and !b) or (!a and b));
-}
-
 inline bool is_bit(const unsigned char ch) noexcept {
   return ((ch == '0') or (ch == '1'));
 }
@@ -36,7 +32,7 @@ bool has_only_bits(const std::string &str) noexcept {
 }
 
 void RemoveLeadingZeroes(lib::array::Array &arr) noexcept {
-  while (arr.Back() == 0 and arr.Size() != 1) {
+  while (arr.Back() == '0' and arr.Size() != 1) {
     arr.PopBack();
   }
 }
@@ -51,6 +47,7 @@ BitString::BitString(const std::size_t count, const unsigned char value)
   if (value >= '2') {
     throw std::invalid_argument("The value has to be equal '0' or '1'");
   }
+  RemoveLeadingZeroes(digits_);
 }
 
 BitString::BitString(const std::initializer_list<unsigned char> &init)
@@ -58,7 +55,8 @@ BitString::BitString(const std::initializer_list<unsigned char> &init)
   if (!has_only_bits(init)) {
     throw std::invalid_argument(
         "The argument must contain only ones and zeroes");
-  }
+  };
+  RemoveLeadingZeroes(digits_);
 }
 
 BitString::BitString(const std::string &init) : digits_(init) {
@@ -66,6 +64,7 @@ BitString::BitString(const std::string &init) : digits_(init) {
     throw std::invalid_argument(
         "The argument must contain only ones and zeroes");
   }
+  RemoveLeadingZeroes(digits_);
 }
 
 BitString::BitString(array::Array &&arr) noexcept : digits_(std::move(arr)) {}
@@ -105,9 +104,12 @@ bool BitString::Equals(const BitString &other) const noexcept {
 BitString BitString::And(const BitString &a, const BitString &b) noexcept {
   std::size_t a_sz = a.digits_.Size();
   std::size_t b_sz = b.digits_.Size();
-  array::Array new_digits(std::min(a_sz, b_sz));
-  for (std::size_t i = 0; i < std::min(a_sz, b_sz); ++i) {
-    new_digits.Data()[i] = (a.digits_.Get(i) && b.digits_.Get(i));
+  std::size_t max_sz = std::max(a_sz, b_sz);
+  array::Array new_digits(max_sz);
+  for (std::size_t i = 0; i < max_sz; ++i) {
+    unsigned char a_bit = (i < a_sz) ? a.digits_.Get(i) : '0';
+    unsigned char b_bit = (i < b_sz) ? b.digits_.Get(i) : '0';
+    new_digits.Data()[i] = (a_bit == '1' && b_bit == '1') ? '1' : '0';
   }
   RemoveLeadingZeroes(new_digits);
   return BitString(std::move(new_digits));
@@ -116,18 +118,12 @@ BitString BitString::And(const BitString &a, const BitString &b) noexcept {
 BitString BitString::Or(const BitString &a, const BitString &b) noexcept {
   std::size_t a_sz = a.digits_.Size();
   std::size_t b_sz = b.digits_.Size();
-  array::Array new_digits(std::max(a_sz, b_sz));
-  for (std::size_t i = 0; i < std::min(a_sz, b_sz); ++i) {
-    new_digits.Data()[i] = (a.digits_.Get(i) || b.digits_.Get(i));
-  }
-  if (a_sz > b_sz) {
-    for (std::size_t i = b_sz; i < a_sz; ++i) {
-      new_digits.Data()[i] = a.digits_.Get(i);
-    }
-  } else {
-    for (std::size_t i = a_sz; i < b_sz; ++i) {
-      new_digits.Data()[i] = b.digits_.Get(i);
-    }
+  std::size_t max_sz = std::max(a_sz, b_sz);
+  array::Array new_digits(max_sz);
+  for (std::size_t i = 0; i < max_sz; ++i) {
+    unsigned char a_bit = (i < a_sz) ? a.digits_.Get(i) : '0';
+    unsigned char b_bit = (i < b_sz) ? b.digits_.Get(i) : '0';
+    new_digits.Data()[i] = (a_bit == '1' || b_bit == '1') ? '1' : '0';
   }
   return BitString(std::move(new_digits));
 }
@@ -135,18 +131,12 @@ BitString BitString::Or(const BitString &a, const BitString &b) noexcept {
 BitString BitString::Xor(const BitString &a, const BitString &b) noexcept {
   std::size_t a_sz = a.digits_.Size();
   std::size_t b_sz = b.digits_.Size();
-  array::Array new_digits(std::max(a_sz, b_sz));
-  for (std::size_t i = 0; i < std::min(a_sz, b_sz); ++i) {
-    new_digits.Data()[i] = ::Xor(a.digits_.Get(i), b.digits_.Get(i));
-  }
-  if (a_sz > b_sz) {
-    for (std::size_t i = b_sz; i < a_sz; ++i) {
-      new_digits.Data()[i] = ::Xor(a.digits_.Get(i), '0');
-    }
-  } else {
-    for (std::size_t i = a_sz; i < b_sz; ++i) {
-      new_digits.Data()[i] = ::Xor(b.digits_.Get(i), '0');
-    }
+  std::size_t max_sz = std::max(a_sz, b_sz);
+  array::Array new_digits(max_sz);
+  for (std::size_t i = 0; i < max_sz; ++i) {
+    unsigned char a_bit = (i < a_sz) ? a.digits_.Get(i) : '0';
+    unsigned char b_bit = (i < b_sz) ? b.digits_.Get(i) : '0';
+    new_digits.Data()[i] = (a_bit == b_bit) ? '0' : '1';
   }
   RemoveLeadingZeroes(new_digits);
   return BitString(std::move(new_digits));
@@ -155,7 +145,7 @@ BitString BitString::Xor(const BitString &a, const BitString &b) noexcept {
 BitString BitString::Not(const BitString &str) noexcept {
   array::Array new_digits(str.digits_.Size());
   for (std::size_t i = 0; i < new_digits.Size(); ++i) {
-    new_digits.Data()[i] = !str.digits_.Get(i);
+    new_digits.Data()[i] = (str.digits_.Get(i) == '0') ? '1' : '0';
   }
   RemoveLeadingZeroes(new_digits);
   return BitString(std::move(new_digits));

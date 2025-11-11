@@ -17,7 +17,7 @@ protected:
 TEST_F(ArrayTest, DefaultConstructor) {
   EXPECT_TRUE(empty_array_.Empty());
   EXPECT_EQ(empty_array_.Size(), 0);
-  EXPECT_GE(empty_array_.Capacity(), 10);
+  EXPECT_GE(empty_array_.Capacity(), 0);
 }
 
 TEST_F(ArrayTest, SizeValueConstructor) {
@@ -107,7 +107,8 @@ TEST_F(ArrayTest, ClearResetsSize) {
 
   EXPECT_TRUE(arr.Empty());
   EXPECT_EQ(arr.Size(), 0);
-  EXPECT_GE(arr.Capacity(), 10); // Capacity сохраняется
+  EXPECT_EQ(arr.Capacity(),
+            lib::array::DEFAULT_CAPACITY); // Capacity сохраняется
 }
 
 TEST_F(ArrayTest, ReserveIncreasesCapacity) {

@@ -46,6 +46,91 @@ TEST_F(BitStringTest, InvalidStringThrowsException) {
   EXPECT_THROW(lib::bit_string::BitString("1a0"), std::invalid_argument);
 }
 
+TEST_F(BitStringTest, ConstructFromArray) {
+  lib::array::Array arr{'1', '0', '1', '0'};
+  lib::bit_string::BitString bs(arr);
+  EXPECT_TRUE(bs.Equals(lib::bit_string::BitString("1010")));
+}
+
+TEST_F(BitStringTest, ConstructFromArrayWithInvalidData) {
+  lib::array::Array arr{'1', '0', '2'}; // '2' - invalid
+  EXPECT_THROW(lib::bit_string::BitString bs(arr), std::invalid_argument);
+}
+
+TEST_F(BitStringTest, ConstructFromArrayWithLeadingZeroes) {
+  lib::array::Array arr{'0', '0', '1', '0'};
+  lib::bit_string::BitString bs(arr);
+  EXPECT_TRUE(
+      bs.Equals(lib::bit_string::BitString("001"))); // leading zeroes removed
+}
+
+TEST_F(BitStringTest, AdditionOperation) {
+  lib::bit_string::BitString a("0101"); // 10
+  lib::bit_string::BitString b("1100"); // 3
+  auto result = lib::bit_string::BitString::Add(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("1011"))); // 13
+}
+
+TEST_F(BitStringTest, AdditionWithCarry) {
+  lib::bit_string::BitString a("1111"); // 15
+  lib::bit_string::BitString b("1000"); // 1
+  auto result = lib::bit_string::BitString::Add(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("00001"))); // 16
+}
+
+TEST_F(BitStringTest, AdditionDifferentLengths) {
+  lib::bit_string::BitString a("1");   // 1
+  lib::bit_string::BitString b("111"); // 7
+  auto result = lib::bit_string::BitString::Add(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("0001"))); // 8
+}
+
+TEST_F(BitStringTest, SubtractionOperation) {
+  lib::bit_string::BitString a("1011"); // 13
+  lib::bit_string::BitString b("1100"); // 3
+  auto result = lib::bit_string::BitString::Substract(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("0101"))); // 10
+}
+
+TEST_F(BitStringTest, SubtractionWithBorrow) {
+  lib::bit_string::BitString a("0001"); // 8
+  lib::bit_string::BitString b("1000"); // 1
+  auto result = lib::bit_string::BitString::Substract(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("1110"))); // 7
+}
+
+TEST_F(BitStringTest, SubtractionEqualOperands) {
+  lib::bit_string::BitString a("0101");
+  lib::bit_string::BitString b("0101");
+  auto result = lib::bit_string::BitString::Substract(a, b);
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("0")));
+}
+
+TEST_F(BitStringTest, SubtractionThrowsWhenASmallerThanB) {
+  lib::bit_string::BitString a("0100"); // 2
+  lib::bit_string::BitString b("0101"); // 10
+
+  EXPECT_THROW(lib::bit_string::BitString::Substract(a, b),
+               std::invalid_argument);
+}
+
+TEST_F(BitStringTest, ComplexAdditionAndSubtraction) {
+  lib::bit_string::BitString a("0101"); // 10
+  lib::bit_string::BitString b("1100"); // 3
+  lib::bit_string::BitString c("1010"); // 5
+
+  auto sum = lib::bit_string::BitString::Add(a, b);            // 10 + 3 = 13
+  auto result = lib::bit_string::BitString::Substract(sum, c); // 13 - 5 = 8
+
+  EXPECT_TRUE(result.Equals(lib::bit_string::BitString("0001")));
+}
+
 TEST_F(BitStringTest, ComparisonOperations) {
   // Greater tests
   EXPECT_TRUE(bitstring_0011_.Greater(bitstring_0101_));

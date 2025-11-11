@@ -32,15 +32,17 @@ bool has_only_bits(const std::string &str) noexcept {
 }
 
 void RemoveLeadingZeroes(lib::array::Array &arr) noexcept {
-  while (arr.Back() == '0' and arr.Size() != 1) {
-    arr.PopBack();
+  if (!arr.Empty()) {
+    while (arr.Back() == '0' and arr.Size() != 1) {
+      arr.PopBack();
+    }
   }
 }
 } // namespace
 
 namespace lib::bit_string {
 
-BitString::BitString() : digits_(0) {}
+BitString::BitString() {}
 
 BitString::BitString(const std::size_t count, const unsigned char value)
     : digits_(count, value) {
@@ -67,9 +69,75 @@ BitString::BitString(const std::string &init) : digits_(init) {
   RemoveLeadingZeroes(digits_);
 }
 
-BitString::BitString(array::Array &&arr) noexcept : digits_(std::move(arr)) {}
+BitString::BitString(const array::Array &arr) : digits_(arr) {
+  for (std::size_t i = 0; i < digits_.Size(); ++i) {
+    if (!is_bit(digits_.Get(i))) {
+      throw std::invalid_argument("Array must contain only '0' and '1'!");
+    }
+  }
+  RemoveLeadingZeroes(digits_);
+}
+
+BitString::BitString(array::Array &&arr) : digits_(std::move(arr)) {
+  for (std::size_t i = 0; i < digits_.Size(); ++i) {
+    if (!is_bit(digits_.Get(i))) {
+      throw std::invalid_argument("Array must contain only '0' and '1'!");
+    }
+  }
+  RemoveLeadingZeroes(digits_);
+}
 
 BitString::~BitString() noexcept = default;
+
+BitString BitString::Add(const BitString &a, const BitString &b) noexcept {
+  std::size_t max_size = std::max(a.digits_.Size(), b.digits_.Size());
+  array::Array new_digits(max_size + 1, '0');
+  unsigned char carry = '0';
+  for (std::size_t i = 0; i < max_size; ++i) {
+    unsigned char a_bit = (i < a.digits_.Size()) ? a.digits_.Get(i) : '0';
+    unsigned char b_bit = (i < b.digits_.Size()) ? b.digits_.Get(i) : '0';
+    int sum = static_cast<int>(a_bit - '0' + b_bit - '0' + carry - '0');
+    new_digits.Data()[i] = static_cast<unsigned char>(sum % 2 + '0');
+    carry = static_cast<unsigned char>(static_cast<int>(sum / 2) + '0');
+  }
+  if (carry == '1') {
+    new_digits.Data()[max_size] = '1';
+  } else {
+    new_digits.PopBack();
+  }
+  RemoveLeadingZeroes(new_digits);
+  return BitString(std::move(new_digits));
+}
+
+BitString BitString::Substract(const BitString &a, const BitString &b) {
+  if (b.digits_.Empty()) {
+    return BitString((a.digits_.Empty()) ? '0' : a.digits_);
+  }
+  if (a.Equals(b)) {
+    return BitString{'0'};
+  }
+  if (a.Smaller(b)) {
+    throw std::invalid_argument(
+        "The first argument must be greater than the second one to substract!");
+  }
+  std::size_t max_size = a.digits_.Size();
+  array::Array new_digits(max_size, '0');
+  unsigned char carry = '0';
+  for (std::size_t i = 0; i < max_size; ++i) {
+    unsigned char a_bit = a.digits_.Get(i);
+    unsigned char b_bit = (i < b.digits_.Size()) ? b.digits_.Get(i) : '0';
+    int diff = static_cast<int>((a_bit - '0') - (b_bit - '0') - (carry - '0'));
+    if (diff < 0) {
+      diff += 2;
+      carry = '1';
+    } else {
+      carry = '0';
+    }
+    new_digits.Data()[i] = static_cast<unsigned char>(diff + '0');
+  }
+  RemoveLeadingZeroes(new_digits);
+  return BitString(std::move(new_digits));
+}
 
 bool BitString::Greater(const BitString &other) const noexcept {
   if (digits_.Size() != other.digits_.Size()) {

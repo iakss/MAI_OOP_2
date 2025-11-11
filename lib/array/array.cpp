@@ -4,31 +4,37 @@
 
 namespace lib::array {
 
-Array::Array() { Reserve(DEFAULT_CAPACITY); }
+Array::Array() {}
 
 Array::Array(const std::size_t count, const unsigned char value) {
-  Reserve(count);
-  size_ = count;
-  for (std::size_t i = 0; i < size_; ++i) {
-    data_[i] = value;
+  if (count > 0) {
+    Reserve(count);
+    size_ = count;
+    for (std::size_t i = 0; i < size_; ++i) {
+      data_[i] = value;
+    }
   }
 }
 
 Array::Array(const std::initializer_list<unsigned char> &init) {
-  Reserve(init.size());
-  size_ = init.size();
-  size_t index = 0;
-  for (unsigned char ch : init) {
-    data_[index] = ch;
-    ++index;
+  if (init.size() > 0) {
+    Reserve(init.size());
+    size_ = init.size();
+    size_t index = 0;
+    for (unsigned char ch : init) {
+      data_[index] = ch;
+      ++index;
+    }
   }
 }
 
 Array::Array(const std::string &init) {
-  Reserve(init.size());
-  size_ = init.size();
-  for (std::size_t i = 0; i < init.size(); ++i) {
-    data_[i] = static_cast<unsigned char>(init[i]);
+  if (init.size() > 0) {
+    Reserve(init.size());
+    size_ = init.size();
+    for (std::size_t i = 0; i < init.size(); ++i) {
+      data_[i] = static_cast<unsigned char>(init[i]);
+    }
   }
 }
 
@@ -95,7 +101,7 @@ void Array::PushBack(const unsigned char value) {
 
 void Array::PopBack() noexcept {
   if (size_ > 0) {
-    data_[size_ - 1] = 0;
+    data_[size_ - 1] = '0';
     --size_;
   }
 }

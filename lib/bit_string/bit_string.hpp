@@ -14,8 +14,12 @@ public:
   BitString(const std::initializer_list<unsigned char> &init);
   BitString(const std::string &init);
 
-  BitString(array::Array &&array) noexcept;
+  BitString(const array::Array &arr);
+  BitString(array::Array &&array);
   ~BitString() noexcept;
+
+  static BitString Add(const BitString &a, const BitString &b) noexcept;
+  static BitString Substract(const BitString &a, const BitString &b);
 
   bool Greater(const BitString &other) const noexcept;
   bool Smaller(const BitString &other) const noexcept;
